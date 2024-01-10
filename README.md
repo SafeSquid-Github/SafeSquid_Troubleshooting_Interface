@@ -5,6 +5,7 @@ This project helps to debug and troubleshoot issues related to any website or ap
 For users who are not so comformatble with command line interface can only easy troubleshoot issues simply from there browser.
 
 To start using the project follow below steps:
+**NOTE:** Websocketd is available on ubuntu versions 20.04 and above.
 1. Install websocketd
 ```
 apt update && apt install websocketd
