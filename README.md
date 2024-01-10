@@ -13,5 +13,5 @@ apt update && apt install websocketd
 2. Clone the project
 3. Initalize weboscket connection
 ```
-websocketd --port=8081 --loglevel=debug  --staticdir=<git_clone_directory>/SafeSquid_Troubleshooting_Interface/net_analyzer/ --dir=<git_clone_directory>/SafeSquid_Troubleshooting_Interface/net_analyzer/scripts/
+websocketd --port=8081 --loglevel=debug  --staticdir=<git_clone_directory>/SafeSquid_Troubleshooting_Interface/interface/ --dir=<git_clone_directory>/SafeSquid_Troubleshooting_Interface/net_analyzer/scripts/
 ```

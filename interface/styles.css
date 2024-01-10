@@ -1,0 +1,93 @@
+body {
+    font-family: initial;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+.container {
+    text-align: center;
+}
+
+#inputField {
+    width: 300px;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+#ext_output {
+    width: 1500px;
+    height: 300px;
+    overflow-y: auto;
+    background-color: #f9f9f9;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin: 10px 0;
+    text-align: left;
+}
+
+#fnd_id_output { 
+    width: 1500px;
+    height: 300px;
+    overflow-y: auto;
+    background-color: #f9f9f9;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin: 10px 0;
+    text-align: left;
+}
+
+button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+.clickable {
+    cursor: pointer;
+    color: black;
+}
+
+.clickable:hover {
+    text-decoration: underline;
+}
+
+.filter-table {
+    margin-left: auto;
+    margin-right: auto;
+    border-collapse: collapse;
+}
+
+.filter-table td, .filter-table th {
+    border: 1px solid black;
+    padding: 5px;
+    text-align: center;
+}
+
+table {
+    /* border-collapse: collapse; */
+    width: 100%;
+}
+  
+th, td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #DDD;
+}
+
+tr:hover {
+    background-color: #808080;
+}

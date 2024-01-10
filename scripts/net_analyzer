@@ -1,0 +1,54 @@
+#!/bin/bash
+
+# Execute = 0 (will echo the command)
+# Execute = 1 (will execute the command)
+EXECUTE="1"
+# MODE=0 (will be static loging)
+# MODE=1 (will be live loging)
+MODE="1"
+LOG_DIR="/var/log/safesquid/extended"
+LOG="extended.log"
+
+AWK_FILTER () {
+    # Initialize the array
+    AWK=()
+    # Set field seprator as tab
+    AWK+=("awk -F '\\t'")
+    AWK+=(\')
+    AWK+=("${ADVANCE_FILTER}")
+    AWK+=("{print \$4,${COLUMNS}}")
+    AWK+=(\')
+    #Based on the mode 
+    [[ "${MODE}" -eq 0 ]] && AWK+=("${LOG_DIR}/*") || AWK+=("< <(tail -F ${LOG_DIR}/${LOG})")
+    #If variable EXECUTE set to zero, the script will echo out the final command.
+    [[ "${EXECUTE}" -eq 0 ]] && echo "${AWK[@]}" || eval "${AWK[@]}"
+}
+
+OPTIONS () {
+    while getopts c:f: option
+    do
+        case ${option} in
+            c) #Add columns to filters
+                COLUMNS="${OPTARG}";;
+            f) #Add conditions to filters
+                ADVANCE_FILTER="${OPTARG}";;
+        esac
+    done
+} 
+
+MAIN () {
+    OPTIONS "${@}"
+    AWK_FILTER
+}
+
+# Loop and listen for user inputs
+while true
+do
+    if read -t 1 INPUT
+    then
+        MAIN ${INPUT}
+    else
+        # No input, sleep for a bit to prevent high CPU usage
+        sleep 1
+    fi
+done
