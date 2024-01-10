@@ -2,7 +2,7 @@
 Troubleshooting Made easier by SafeSquid.
 
 This project helps to debug and troubleshoot issues related to any website or application just from your web interface.
-For users who are not so comformatble with command line interface can only easy troubleshoot issues simply from there browser.
+For users who are not so comformatble with command line interface can now easy troubleshoot issues simply from there browser.
 
 To start using the project follow below steps:
 **NOTE:** Websocketd is available on ubuntu versions 20.04 and above.
