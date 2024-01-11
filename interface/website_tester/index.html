@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafeSquid Troubleshooter</title>
+
+    <!-- W3 CSS -->
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+
+    <!-- Add JQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+<body>
+    <div class="w3-bar w3-black">
+        <a href="/" class="w3-bar-item w3-button">Home</a>
+        <a href="/website_tester" class="w3-bar-item w3-button w3-white">Website Tester</a>
+        <a href="/live_log_filter" class="w3-bar-item w3-button">Live Log Filter</a>
+        <a href="/log_analyser" class="w3-bar-item w3-button">Log Analyser</a>
+    </div>
+
+    <h2 class="w3-center">Website Tester</h2>
+
+    <div class="w3-cell-row w3-padding-large">
+        <div class="w3-container w3-cell">
+            <select id="protocol" class="w3-select w3-border">
+                <option value="http://" selected>http://</option>
+                <option value="https://">https://</option>
+            </select>
+        </div>
+        <div class="w3-container w3-cell">
+            <input type="text" id="website" class="w3-input w3-border" placeholder="Enter a Website (eg: www.google.com)">
+        </div>
+        <div class="w3-container w3-cell">
+            <button id="test_website" class="w3-button w3-black">Test</button>
+        </div>
+    </div>
+
+    <div id="output" class="w3-container w3-center w3-light-grey">
+    </div>
+
+    <script src="script.js"></script>
+</body></html>

@@ -138,4 +138,14 @@ MAIN () {
     PROXY_CONNECTIVITY_CHECK
 }
 
-MAIN ${1}
+# Loop and listen for user inputs
+while true
+do
+    if read -t 1 INPUT
+    then
+        MAIN ${INPUT}
+    else
+        # No input, sleep for a bit to prevent high CPU usage
+        sleep 1
+    fi
+done
