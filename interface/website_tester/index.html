@@ -20,24 +20,25 @@
     </div>
 
     <h2 class="w3-center">Website Tester</h2>
-
-    <div class="w3-cell-row w3-padding-large">
-        <div class="w3-container w3-cell">
-            <select id="protocol" class="w3-select w3-border">
-                <option value="http://" selected>http://</option>
-                <option value="https://">https://</option>
-            </select>
+    
+    <div class="w3-padding-large">
+        <div class="w3-row-padding">
+            <div class="w3-col s2">
+                <select id="protocol" class="w3-select w3-border w3-center">
+                    <option value="http://" selected>http://</option>
+                    <option value="https://">https://</option>
+                </select>
+            </div>
+            <div class="w3-col s8">
+                <input type="text" id="website" class="w3-input w3-border" placeholder="Enter a Website (eg: www.google.com)">
+            </div>
+            <div class="w3-col s2">
+                <button id="test_website" class="w3-button w3-black w3-cell-row">Test</button>
+            </div>
         </div>
-        <div class="w3-container w3-cell">
-            <input type="text" id="website" class="w3-input w3-border" placeholder="Enter a Website (eg: www.google.com)">
-        </div>
-        <div class="w3-container w3-cell">
-            <button id="test_website" class="w3-button w3-black">Test</button>
-        </div>
-    </div>
 
-    <div id="output" class="w3-container w3-center w3-light-grey">
-    </div>
-
+        <div id="output" class="w3-container">
+        </div>
+    <div>
     <script src="script.js"></script>
 </body></html>

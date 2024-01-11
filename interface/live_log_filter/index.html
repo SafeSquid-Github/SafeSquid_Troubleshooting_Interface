@@ -5,7 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SafeSquid Troubleshooter</title>
 
+    <!-- W3 CSS -->
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+
+    <!-- Add JQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <!-- Datatable -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.21/css/jquery.dataTables.css">
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.js"></script>
 </head>
 <body>
     <div class="w3-bar w3-black">
@@ -16,5 +24,29 @@
     </div>
 
     <h2 class="w3-center">Live Log Filter</h2>
+
+    <!-- <div id="ext_output"></div>
+        <div id="fnd_id_output"></div>  -->
+
+    <div class="w3-padding-large">
+        <div class="w3-row-padding">
+            <div class="w3-col s11">
+                <input type="text" id="filter" placeholder="Input your filter" class="w3-input w3-border">
+            </div>
+            <div class="w3-col s1">
+                <button id="start_monitor" class="w3-button w3-black w3-cell-row">Monitor</button>
+                <button id="stop_monitor" style="display:none;" class="w3-button w3-black w3-cell-row">Stop</button>
+            </div>
+        </div>
+
+        <div id="logs" class="w3-container w3-light-grey w3-margin">
+            <table id="log_table"></table>
+        </div>
+        
+        <div id="log_detail" class="w3-container w3-light-grey">
+        </div>
+    </div>
+
+    <script src="script.js"></script>
 
 </body></html>
