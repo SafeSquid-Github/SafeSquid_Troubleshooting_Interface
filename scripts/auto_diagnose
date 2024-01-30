@@ -22,12 +22,9 @@ XML_OUT() {
     MSG="${3}"
     EXIT="${4}"
     
-    # Generate the XML output
-    printf '<auto_diagnose>\n'
-    printf '    <TEST>%s</TEST>\n' "${TEST}"
-    printf '    <RESULT>%s</RESULT>\n' "${RESULT}"
-    printf '    <MSG><![CDATA[%s]]></MSG>\n' "${MSG}"
-    printf '</auto_diagnose>\n'
+    # Generate the XML output using a single printf
+    printf '<auto_diagnose>\n    <TEST>%s</TEST>\n    <RESULT>%s</RESULT>\n    <MSG><![CDATA[%s]]></MSG>\n</auto_diagnose>\n' \
+    "${TEST}" "${RESULT}" "${MSG}"
 
     [ "x${EXIT}" == "x1" ] && exit 1
 }
