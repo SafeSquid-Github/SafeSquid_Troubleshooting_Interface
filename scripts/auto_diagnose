@@ -5,27 +5,15 @@ PROXY_IP="127.0.0.1"
 PROXY_PORT="8080"
 PROXY_CA_CERT="/usr/local/safesquid/security/ssl/ROOT_X509File.cer"
 
-#Output message in json format
-JSON_OUT () {
-    TEST=${1}
-    RESULT=${2}
-    MSG=${3}
-    EXIT=${4}
-    printf '{"TEST":"%s","RESULT":"%s","MSG":"%s"}\n' "${TEST}" "${RESULT}" "${MSG}" 
-    [ "x${EXIT}" == "x1" ] && exit 1
-}
-
 #Output message in xml format
 XML_OUT() {
-    TEST="${1}"
-    RESULT="${2}"
-    MSG="${3}"
+	TEST=$(base64 <<< "${1}" | tr -d '\n')
+	RESULT=$(base64 <<< "${2}" | tr -d '\n')
+	MSG=$(base64 <<< "${3}" | tr -d '\n')
     EXIT="${4}"
     
     # Generate the XML output using a single printf
-    printf '<auto_diagnose>\n    <TEST>%s</TEST>\n    <RESULT>%s</RESULT>\n    <MSG><![CDATA[%s]]></MSG>\n</auto_diagnose>\n' \
-    "${TEST}" "${RESULT}" "${MSG}"
-
+    printf '<auto_diagnose><TEST>%s</TEST><RESULT>%s</RESULT><MSG><![CDATA[%s]]></MSG></auto_diagnose>\n' "${TEST}" "${RESULT}" "${MSG}"
     [ "x${EXIT}" == "x1" ] && exit 1
 }
 
@@ -94,11 +82,11 @@ SSL_CHECK () {
 }
 
 #Check the connectivity direct.
-CONNECTIVITY_CHECK () {
+RESPONSE_CHECK () {
     local TEST RESULT MESSAGE
     TEST="REMOTE SERVER RESPONSE CHECK"
-    RESPONSE=$(curl -sS -L ${URL} --head | awk '$1 ~ /^HTTP\/[1-2]/ {LM=$0} END {if (LM) {split(LM, fields, " "); print fields[2]}}') 
-    RESPONSE_VERBOSE=$(curl -sS -L ${URL} --head ) 
+    RESPONSE="$(curl -sS -L ${URL} --head | awk '$1 ~ /^HTTP\/[1-2]/ {LM=$0} END {if (LM) {split(LM, fields, " "); print fields[2]}}')" 
+    RESPONSE_VERBOSE="$(curl -sS -L ${URL} --head ) "
     [[ "$RESPONSE" -ge 200 && "$RESPONSE" -lt 400 ]] && OK_MSG "${RESPONSE_VERBOSE}" || ERR_MSG "${RESPONSE_VERBOSE}"
     XML_OUT "${TEST}" "${RESULT}" "${MESSAGE}" "${EXIT}"
 }
@@ -140,14 +128,13 @@ MAIN () {
     DNS_CHECK
     PORT_CHECK
     [ "x${PROTO}" == "xhttps" ] && SSL_CHECK
-    CONNECTIVITY_CHECK
+    RESPONSE_CHECK
     PROXY_CONNECTIVITY_CHECK
     PROXY_SSL_CHECK
     PROXY_RESPONSE_CHECK
 }
 
-
-# Loop and listen for user inputs
+#Loop and listen for user inputs
 while true
 do
     if read -t 1 INPUT
