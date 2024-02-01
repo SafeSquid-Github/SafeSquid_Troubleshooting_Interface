@@ -7,17 +7,11 @@ PROXY_CA_CERT="/usr/local/safesquid/security/ssl/ROOT_X509File.cer"
 
 #Output message in xml format
 XML_OUT() {
-    # TEST=$(base64 <<< "${1}" | tr -d '\n')
-    # INFO=$(base64 <<< "${2}" | tr -d '\n' )
-    # COMMAND_EXEC=$(base64 <<< "${3}" | tr -d '\n' )
-    # RESULT=$(base64 <<< "${4}" | tr -d '\n' )
-    # MSG=$(base64 <<< "${5}" | tr -d '\n' )
-    # EXIT="${6}"
-    TEST="${1}" 
-    INFO="${2}" 
-    COMMAND_EXEC="${3}" 
-    RESULT="${4}" 
-    MSG="${5}" 
+    TEST=$(base64 <<< "${1}" | tr -d '\n')
+    INFO=$(base64 <<< "${2}" | tr -d '\n' )
+    COMMAND_EXEC=$(base64 <<< "${3}" | tr -d '\n' )
+    RESULT=$(base64 <<< "${4}" | tr -d '\n' )
+    MSG=$(base64 <<< "${5}" | tr -d '\n' )
     EXIT="${6}"
 
     # Generate the XML output using a single printf
@@ -157,12 +151,10 @@ MAIN () {
 }
 
 #Loop and listen for user inputs
-# while true
-# do
-#     if read -t 1 INPUT
-#     then
-#         MAIN ${INPUT}
-#     fi
-# done
-
-MAIN "${*}"
+while true
+do
+    if read -t 1 INPUT
+    then
+        MAIN ${INPUT}
+    fi
+done
