@@ -14,6 +14,10 @@
     <!-- Datatable -->
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.21/css/jquery.dataTables.css">
     <script type="text/javascript" src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.js"></script>
+
+    <!-- Select2 -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 </head>
 <body>
     <div class="w3-bar w3-black">
@@ -30,20 +34,48 @@
 
     <div class="w3-padding-large">
         <div class="w3-row-padding">
-            <div class="w3-col s11">
-                <input type="text" id="filter" placeholder="Input your filter" class="w3-input w3-border">
+            <div class="w3-col s3">
+                <!-- Add label for columns -->
+                <label for="columns">Select the columns to display:</label>
             </div>
-            <div class="w3-col s1">
-                <button id="start_monitor" class="w3-button w3-black w3-cell-row">Monitor</button>
-                <button id="stop_monitor" style="display:none;" class="w3-button w3-black w3-cell-row">Stop</button>
+            <div class="w3-col s9">
+                <select id="columns" class="w3-select w3-border w3-center">
+                </select>
             </div>
         </div>
+        <div id="filter_div">
 
-        <div id="logs" class="w3-container w3-light-grey w3-margin">
+            <div class="w3-row-padding w3-center">
+                <h3>Apply Filters</h3>
+            </div>
+
+            <div class="w3-row-padding">
+                <div class="w3-col w3-center s3">Column to filter</div>
+                <div class="w3-col w3-center s3">Conditon</div>
+                <div class="w3-col w3-center s6">Pattern</div>
+            </div>
+            <div id="filter_table" class="w3-row-padding"></div>
+            <div class="w3-row-padding">
+                <button id="add_filter_row" class="w3-button w3-black w3-cell-row">Add Filter</button>
+            </div>
+
+        </div>
+        <br>
+        <div class="w3-row-padding">
+            <!-- <div class="w3-col s11">
+                <input type="text" id="filter" placeholder="Input your filter" class="w3-input w3-border">
+            </div> -->
+            <!-- <div class="w3-col s12"> -->
+                <button id="start_monitor" class="w3-button w3-black w3-cell-row">Monitor</button>
+                <button id="stop_monitor" style="display:none;" class="w3-button w3-black w3-cell-row">Stop</button>
+            <!-- </div> -->
+        </div>
+
+        <div id="logs" class="w3-row-padding">
             <table id="log_table"></table>
         </div>
         
-        <div id="log_detail" class="w3-container w3-light-grey">
+        <div id="log_detail" class="w3-row-padding">
         </div>
     </div>
 
