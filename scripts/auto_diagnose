@@ -7,18 +7,21 @@ PROXY_CA_CERT="/usr/local/safesquid/security/ssl/ROOT_X509File.cer"
 
 #Output message in xml format
 XML_OUT() {
-	TEST=$(base64 <<< "${1}" | tr -d '\n')
-	RESULT=$(base64 <<< "${2}" | tr -d '\n')
-	MSG=$(base64 <<< "${3}" | tr -d '\n')
-    EXIT="${4}"
-    
+    TEST=$(base64 <<< "${1}" | tr -d '\n')
+    INFO=$(base64 <<< "${2}" | tr -d '\n' )
+    COMMAND_EXEC=$(base64 <<< "${3}" | tr -d '\n' )
+    RESULT=$(base64 <<< "${4}" | tr -d '\n' )
+    MSG=$(base64 <<< "${5}" | tr -d '\n' )
+    EXIT="${6}"
+
     # Generate the XML output using a single printf
-    printf '<auto_diagnose><TEST>%s</TEST><RESULT>%s</RESULT><MSG><![CDATA[%s]]></MSG></auto_diagnose>\n' "${TEST}" "${RESULT}" "${MSG}"
+    printf '<auto_diagnose><TEST>%s</TEST><INFO>%s</INFO><COMMAND>%s</COMMAND><RESULT>%s</RESULT><MSG><![CDATA[%s]]></MSG></auto_diagnose>\n' "${TEST}" "${INFO}" "${COMMAND_EXEC}" "${RESULT}" "${MSG}"
     [ "x${EXIT}" == "x1" ] && exit 1
 }
 
 #Ok message to print
 OK_MSG () {
+    local INFO
     INFO="${@}"
     RESULT="SUCCESS"
     MESSAGE="${INFO}"
@@ -27,6 +30,7 @@ OK_MSG () {
 
 #Error message to print
 ERR_MSG () {
+    local INFO
     INFO="${@}"
     RESULT="ERROR"
     MESSAGE="${INFO}"
@@ -52,73 +56,85 @@ SET_PORT () {
 #DNS Check - usig nslookup check the DNS resolution for the specified host
 DNS_CHECK () {
     local TEST RESULT MESSAGE RESPONSE
-    #Set Test Conditions
     TEST="DNS CHECK"
-    #EXEC Test
-    RESPONSE=$(dig +short "${HOST}" | grep '^[0-9]\+\.[0-9]\+\.[0-9]\+\.[0-9]\+$' | head -n 1)
-    RESPONSE_VERBOSE=$(dig +short "${HOST}" )
+    INFO="DNS LOOKUP FOR HOSTNAME: "${HOST}""
+    COMMAND="dig +short "${HOST}""
+    RESPONSE=$(exec ${COMMAND} | grep '^[0-9]\+\.[0-9]\+\.[0-9]\+\.[0-9]\+$' | head -n 1)
+    RESPONSE_VERBOSE=$(exec ${COMMAND})
     [ ! -z "${RESPONSE}" ] && OK_MSG "${RESPONSE_VERBOSE}" || ERR_MSG "${RESPONSE_VERBOSE}"
-    XML_OUT "${TEST}" "${RESULT}" "${MESSAGE}" "${EXIT}"
+    XML_OUT "${TEST}" "${INFO}" "${COMMAND}" "${RESULT}" "${MESSAGE}" "${EXIT}"
 }
 
 #Port Check - using telnet check the connectivity to the specified host with the speicifed port
 PORT_CHECK () {
     local TEST RESULT MESSAGE RESPONSE
     TEST="PORT CHECK"
-    RESPONSE=$(echo "" | telnet ${HOST} ${PORT} -E -d 2>&1 | awk '$1 ~ /Connected/')
-    RESPONSE_VERBOSE=$(echo "" | telnet ${HOST} ${PORT} -E -d 2>&1 )
+    INFO="CONNECTING "${HOST}" ON PORT "${PORT}""
+    COMMAND="telnet ${HOST} ${PORT}"
+    RESPONSE=$(echo "" | exec ${COMMAND} 2>&1 | sed '3,$d' | awk '$1 ~ /Connected/')
+    RESPONSE_VERBOSE=$(echo "" | exec ${COMMAND} | 2>&1 | sed '3,$d' )
     [ ! -z "${RESPONSE}" ] && OK_MSG "${RESPONSE_VERBOSE}" || ERR_MSG "${RESPONSE_VERBOSE}"
-    XML_OUT "${TEST}" "${RESULT}" "${MESSAGE}" "${EXIT}"
+    XML_OUT "${TEST}" "${INFO}" "${COMMAND}" "${RESULT}" "${MESSAGE}" "${EXIT}"
 }
 
 #Check SSL certificate of given host
 SSL_CHECK () {
     local TEST RESULT MESSAGE RESPONSE RESPONSE_VERBOSE
     TEST="SSL CERT CHECK"
-    RESPONSE=$(echo "" | openssl s_client -brief  -connect "${HOST}:${PORT}" -verify_hostname ${HOST} 2>&1 | awk -F':' '$1 ~ /Verification/ {print$2}')
-    RESPONSE_VERBOSE=$(echo "" | openssl s_client -brief -state -connect "${HOST}:${PORT}" -verify_hostname ${HOST} 2>&1 )
+    INFO="SERVER CERTIFICATE VERIFICATION FOR HOST ${HOST}"
+    COMMAND="openssl s_client -brief  -connect "${HOST}:${PORT}" -verify_hostname ${HOST}"
+    RESPONSE=$(echo "" | exec ${COMMAND} 2>&1 | awk -F':' '$1 ~ /Verification/ {print$2}')
+    RESPONSE_VERBOSE=$(echo "" | exec ${COMMAND} 2>&1 )
     [ "x${RESPONSE}" == "x OK" ] && OK_MSG "${RESPONSE_VERBOSE}" || ERR_MSG "${RESPONSE_VERBOSE}"
-    XML_OUT "${TEST}" "${RESULT}" "${MESSAGE}" "${EXIT}"
+    XML_OUT "${TEST}" "${INFO}" "${COMMAND}" "${RESULT}" "${MESSAGE}" "${EXIT}"
 }
 
 #Check the connectivity direct.
 RESPONSE_CHECK () {
     local TEST RESULT MESSAGE
     TEST="REMOTE SERVER RESPONSE CHECK"
-    RESPONSE="$(curl -sS -L ${URL} --head | awk '$1 ~ /^HTTP\/[1-2]/ {LM=$0} END {if (LM) {split(LM, fields, " "); print fields[2]}}')" 
-    RESPONSE_VERBOSE="$(curl -sS -L ${URL} --head ) "
+    INFO="VALIDATING WEBSERVER RESPONSE FOR HOST ${HOST}"
+    COMMAND="curl -sS -L ${URL} --head"
+    RESPONSE="$(exec ${COMMAND} | awk '$1 ~ /^HTTP\/[1-2]/ {LM=$0} END {if (LM) {split(LM, fields, " "); print fields[2]}}')" 
+    RESPONSE_VERBOSE="$(exec ${COMMAND}) "
     [[ "$RESPONSE" -ge 200 && "$RESPONSE" -lt 400 ]] && OK_MSG "${RESPONSE_VERBOSE}" || ERR_MSG "${RESPONSE_VERBOSE}"
-    XML_OUT "${TEST}" "${RESULT}" "${MESSAGE}" "${EXIT}"
+    XML_OUT "${TEST}" "${INFO}" "${COMMAND}" "${RESULT}" "${MESSAGE}" "${EXIT}"
 }
 
 #Check the connectivity via proxy.
 PROXY_CONNECTIVITY_CHECK () {
     local TEST RESULT MESSAGE
     TEST="PROXY CONNECTIVITY CHECK"
-    RESPONSE=$(echo "" | telnet ${PROXY_IP} ${PROXY_PORT} -E -d 2>&1 | awk '$1 ~ /Connected/')
-    RESPONSE_VERBOSE=$(echo "" | telnet ${PROXY_IP} ${PROXY_PORT} -E -d 2>&1 )
+    INFO="CHECK PROXY CONNECTIVITY ON PROXY IP ${PROXY_IP} & PORT ${PROXY_PORT}"
+    COMMAND="telnet ${PROXY_IP} ${PROXY_PORT}"
+    RESPONSE=$(echo "" | exec ${COMMAND} 2>&1 | sed '3,$d' | awk '$1 ~ /Connected/')
+    RESPONSE_VERBOSE=$(echo "" | exec ${COMMAND} 2>&1 | sed '3,$d' )
     [ ! -z "${RESPONSE}" ] && OK_MSG "${RESPONSE_VERBOSE}" || ERR_MSG "${RESPONSE_VERBOSE}"
-    XML_OUT "${TEST}" "${RESULT}" "${MESSAGE}" "${EXIT}"
+    XML_OUT "${TEST}" "${INFO}" "${COMMAND}" "${RESULT}" "${MESSAGE}" "${EXIT}"
 }
 
 #Check SSL certificate of given host via proxy
 PROXY_SSL_CHECK () {
     local TEST RESULT MESSAGE RESPONSE RESPONSE_VERBOSE
     TEST="SSL CERT CHECK VIA PROXY"
-    RESPONSE=$(echo "" | openssl s_client -brief -proxy ${PROXY_IP}:${PROXY_PORT} -CAfile ${PROXY_CA_CERT} -connect "${HOST}:${PORT}" -verify_hostname ${HOST} 2>&1 | awk -F':' '$1 ~ /Verification/ {print$2}')
-    RESPONSE_VERBOSE=$(echo "" | openssl s_client -brief -state -connect "${HOST}:${PORT}" -verify_hostname ${HOST} 2>&1 )
+    INFO="SERVER CERTIFICATE VERIFICATION FOR HOST ${HOST} USING PROXY ${PROXY_IP}:${PROXY_PORT}"
+    COMMAND="openssl s_client -brief -proxy ${PROXY_IP}:${PROXY_PORT} -CAfile ${PROXY_CA_CERT} -connect "${HOST}:${PORT}" -verify_hostname ${HOST}"
+    RESPONSE=$(echo "" | exec ${COMMAND} 2>&1 | awk -F':' '$1 ~ /Verification/ {print$2}')
+    RESPONSE_VERBOSE=$(echo "" | exec ${COMMAND} 2>&1 )
     [ "x${RESPONSE}" == "x OK" ] && OK_MSG "${RESPONSE_VERBOSE}" || ERR_MSG "${RESPONSE_VERBOSE}"
-    XML_OUT "${TEST}" "${RESULT}" "${MESSAGE}" "${EXIT}"
+    XML_OUT "${TEST}" "${INFO}" "${COMMAND}" "${RESULT}" "${MESSAGE}" "${EXIT}"
 }
 
 #Check SSL certificate of given host via proxy
 PROXY_RESPONSE_CHECK () {
     local TEST RESULT MESSAGE RESPONSE RESPONSE_VERBOSE
     TEST="REMOTE SERVER RESPONSE CHECK VIA PROXY"
-    RESPONSE=$(curl -Ss -L --proxy ${PROXY_IP}:${PROXY_PORT} --cacert ${PROXY_CA_CERT} "${URL}" --head | awk '$1 ~ /^HTTP\/[1-2]/ {LM=$0} END {if (LM) {split(LM, fields, " "); print fields[2]}}') 
-    RESPONSE_VERBOSE=$(curl -Ss -L --proxy ${PROXY_IP}:${PROXY_PORT} --cacert ${PROXY_CA_CERT} "${URL}" --head) 
+    INFO="VALIDATING WEBSERVER RESPONSE FOR HOST ${HOST}"
+    COMMAND="curl -Ss -L --proxy ${PROXY_IP}:${PROXY_PORT} --cacert ${PROXY_CA_CERT} "${URL}" --head"
+    RESPONSE=$(exec ${COMMAND} | awk '$1 ~ /^HTTP\/[1-2]/ {LM=$0} END {if (LM) {split(LM, fields, " "); print fields[2]}}') 
+    RESPONSE_VERBOSE=$(exec ${COMMAND}) 
     [[ "$RESPONSE" -ge 200 && "$RESPONSE" -lt 400 ]] && OK_MSG "${RESPONSE_VERBOSE}" || ERR_MSG "${RESPONSE_VERBOSE}"
-    XML_OUT "${TEST}" "${RESULT}" "${MESSAGE}" "${EXIT}"
+    XML_OUT "${TEST}" "${INFO}" "${COMMAND}" "${RESULT}" "${MESSAGE}" "${EXIT}"
 }
 
 #MAIN Function
@@ -130,7 +146,7 @@ MAIN () {
     [ "x${PROTO}" == "xhttps" ] && SSL_CHECK
     RESPONSE_CHECK
     PROXY_CONNECTIVITY_CHECK
-    PROXY_SSL_CHECK
+    [ "x${PROTO}" == "xhttps" ] && PROXY_SSL_CHECK
     PROXY_RESPONSE_CHECK
 }
 
@@ -140,8 +156,5 @@ do
     if read -t 1 INPUT
     then
         MAIN ${INPUT}
-    else
-        # No input, sleep for a bit to prevent high CPU usage
-        sleep 1
     fi
 done
