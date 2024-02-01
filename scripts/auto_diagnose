@@ -7,11 +7,17 @@ PROXY_CA_CERT="/usr/local/safesquid/security/ssl/ROOT_X509File.cer"
 
 #Output message in xml format
 XML_OUT() {
-    TEST=$(base64 <<< "${1}" | tr -d '\n')
-    INFO=$(base64 <<< "${2}" | tr -d '\n' )
-    COMMAND_EXEC=$(base64 <<< "${3}" | tr -d '\n' )
-    RESULT=$(base64 <<< "${4}" | tr -d '\n' )
-    MSG=$(base64 <<< "${5}" | tr -d '\n' )
+    # TEST=$(base64 <<< "${1}" | tr -d '\n')
+    # INFO=$(base64 <<< "${2}" | tr -d '\n' )
+    # COMMAND_EXEC=$(base64 <<< "${3}" | tr -d '\n' )
+    # RESULT=$(base64 <<< "${4}" | tr -d '\n' )
+    # MSG=$(base64 <<< "${5}" | tr -d '\n' )
+    # EXIT="${6}"
+    TEST="${1}" 
+    INFO="${2}" 
+    COMMAND_EXEC="${3}" 
+    RESULT="${4}" 
+    MSG="${5}" 
     EXIT="${6}"
 
     # Generate the XML output using a single printf
@@ -22,7 +28,7 @@ XML_OUT() {
 #Ok message to print
 OK_MSG () {
     local INFO
-    INFO="${@}"
+    INFO="${*}"
     RESULT="SUCCESS"
     MESSAGE="${INFO}"
     EXIT="0"
@@ -31,7 +37,7 @@ OK_MSG () {
 #Error message to print
 ERR_MSG () {
     local INFO
-    INFO="${@}"
+    INFO="${*}"
     RESULT="ERROR"
     MESSAGE="${INFO}"
     EXIT="1"
@@ -41,13 +47,13 @@ ERR_MSG () {
 SET_HOST_PROTO () {
     URL="${1}"
     [ "x${URL}" == "x" ] && ERR_MSG "NOT INPUT RECEIVED" && exit 1;
-    HOST=$(echo ${URL} | awk -F'[/:]' '{print $4}')
-    PROTO=$(echo ${URL} | awk -F'[/:]' '{print $1}')
+    HOST=$(awk -F'[/:]' '{print $4}' <<< "${URL}")
+    PROTO=$(awk -F'[/:]' '{print $1}' <<< "${URL}")
 }
 
 #Set port to use
 SET_PORT () {
-    PORT=$(echo ${URL} | awk -F'[/:]' '{print $5}')
+    PORT=$(awk -F'[/:]' '{print $5}' <<< "${URL}")
     [[ "${PORT}" =~ ^[0-9]+$  ]] && return;
     [ "x${PROTO}" == "xhttp" ] && PORT="80" && return;
     [ "x${PROTO}" == "xhttps" ] && PORT="443" 
@@ -57,10 +63,10 @@ SET_PORT () {
 DNS_CHECK () {
     local TEST RESULT MESSAGE RESPONSE
     TEST="DNS CHECK"
-    INFO="DNS LOOKUP FOR HOSTNAME: "${HOST}""
-    COMMAND="dig +short "${HOST}""
-    RESPONSE=$(exec ${COMMAND} | grep '^[0-9]\+\.[0-9]\+\.[0-9]\+\.[0-9]\+$' | head -n 1)
+    INFO="DNS LOOKUP FOR HOSTNAME: ${HOST}"
+    COMMAND="dig +short ${HOST}"
     RESPONSE_VERBOSE=$(exec ${COMMAND})
+    RESPONSE=$(awk '/^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$/ {print; exit}' <<< "${RESPONSE_VERBOSE}" )
     [ ! -z "${RESPONSE}" ] && OK_MSG "${RESPONSE_VERBOSE}" || ERR_MSG "${RESPONSE_VERBOSE}"
     XML_OUT "${TEST}" "${INFO}" "${COMMAND}" "${RESULT}" "${MESSAGE}" "${EXIT}"
 }
@@ -69,10 +75,10 @@ DNS_CHECK () {
 PORT_CHECK () {
     local TEST RESULT MESSAGE RESPONSE
     TEST="PORT CHECK"
-    INFO="CONNECTING "${HOST}" ON PORT "${PORT}""
+    INFO="CONNECTING ${HOST} ON PORT ${PORT}"
     COMMAND="telnet ${HOST} ${PORT}"
-    RESPONSE=$(echo "" | exec ${COMMAND} 2>&1 | sed '3,$d' | awk '$1 ~ /Connected/')
-    RESPONSE_VERBOSE=$(echo "" | exec ${COMMAND} | 2>&1 | sed '3,$d' )
+    RESPONSE_VERBOSE=$(echo "" | exec ${COMMAND} 2>&1 | sed '3,$d' )
+    RESPONSE=$(awk '$1 ~ /Connected/' <<< "${RESPONSE_VERBOSE}" )
     [ ! -z "${RESPONSE}" ] && OK_MSG "${RESPONSE_VERBOSE}" || ERR_MSG "${RESPONSE_VERBOSE}"
     XML_OUT "${TEST}" "${INFO}" "${COMMAND}" "${RESULT}" "${MESSAGE}" "${EXIT}"
 }
@@ -83,8 +89,8 @@ SSL_CHECK () {
     TEST="SSL CERT CHECK"
     INFO="SERVER CERTIFICATE VERIFICATION FOR HOST ${HOST}"
     COMMAND="openssl s_client -brief  -connect "${HOST}:${PORT}" -verify_hostname ${HOST}"
-    RESPONSE=$(echo "" | exec ${COMMAND} 2>&1 | awk -F':' '$1 ~ /Verification/ {print$2}')
     RESPONSE_VERBOSE=$(echo "" | exec ${COMMAND} 2>&1 )
+    RESPONSE=$(awk -F':' '$1 ~ /Verification/ {print$2}' <<< "${RESPONSE_VERBOSE}" )
     [ "x${RESPONSE}" == "x OK" ] && OK_MSG "${RESPONSE_VERBOSE}" || ERR_MSG "${RESPONSE_VERBOSE}"
     XML_OUT "${TEST}" "${INFO}" "${COMMAND}" "${RESULT}" "${MESSAGE}" "${EXIT}"
 }
@@ -95,8 +101,8 @@ RESPONSE_CHECK () {
     TEST="REMOTE SERVER RESPONSE CHECK"
     INFO="VALIDATING WEBSERVER RESPONSE FOR HOST ${HOST}"
     COMMAND="curl -sS -L ${URL} --head"
-    RESPONSE="$(exec ${COMMAND} | awk '$1 ~ /^HTTP\/[1-2]/ {LM=$0} END {if (LM) {split(LM, fields, " "); print fields[2]}}')" 
     RESPONSE_VERBOSE="$(exec ${COMMAND}) "
+    RESPONSE="$(awk '$1 ~ /^HTTP\/[1-2]/ {LM=$0} END {if (LM) {split(LM, fields, " "); print fields[2]}}' <<< "${RESPONSE_VERBOSE}" )" 
     [[ "$RESPONSE" -ge 200 && "$RESPONSE" -lt 400 ]] && OK_MSG "${RESPONSE_VERBOSE}" || ERR_MSG "${RESPONSE_VERBOSE}"
     XML_OUT "${TEST}" "${INFO}" "${COMMAND}" "${RESULT}" "${MESSAGE}" "${EXIT}"
 }
@@ -107,8 +113,8 @@ PROXY_CONNECTIVITY_CHECK () {
     TEST="PROXY CONNECTIVITY CHECK"
     INFO="CHECK PROXY CONNECTIVITY ON PROXY IP ${PROXY_IP} & PORT ${PROXY_PORT}"
     COMMAND="telnet ${PROXY_IP} ${PROXY_PORT}"
-    RESPONSE=$(echo "" | exec ${COMMAND} 2>&1 | sed '3,$d' | awk '$1 ~ /Connected/')
     RESPONSE_VERBOSE=$(echo "" | exec ${COMMAND} 2>&1 | sed '3,$d' )
+    RESPONSE=$(awk '$1 ~ /Connected/' <<< "${RESPONSE_VERBOSE}")
     [ ! -z "${RESPONSE}" ] && OK_MSG "${RESPONSE_VERBOSE}" || ERR_MSG "${RESPONSE_VERBOSE}"
     XML_OUT "${TEST}" "${INFO}" "${COMMAND}" "${RESULT}" "${MESSAGE}" "${EXIT}"
 }
@@ -119,8 +125,8 @@ PROXY_SSL_CHECK () {
     TEST="SSL CERT CHECK VIA PROXY"
     INFO="SERVER CERTIFICATE VERIFICATION FOR HOST ${HOST} USING PROXY ${PROXY_IP}:${PROXY_PORT}"
     COMMAND="openssl s_client -brief -proxy ${PROXY_IP}:${PROXY_PORT} -CAfile ${PROXY_CA_CERT} -connect "${HOST}:${PORT}" -verify_hostname ${HOST}"
-    RESPONSE=$(echo "" | exec ${COMMAND} 2>&1 | awk -F':' '$1 ~ /Verification/ {print$2}')
     RESPONSE_VERBOSE=$(echo "" | exec ${COMMAND} 2>&1 )
+    RESPONSE=$(awk -F':' '$1 ~ /Verification/ {print$2}' <<< "${RESPONSE_VERBOSE}")
     [ "x${RESPONSE}" == "x OK" ] && OK_MSG "${RESPONSE_VERBOSE}" || ERR_MSG "${RESPONSE_VERBOSE}"
     XML_OUT "${TEST}" "${INFO}" "${COMMAND}" "${RESULT}" "${MESSAGE}" "${EXIT}"
 }
@@ -130,9 +136,9 @@ PROXY_RESPONSE_CHECK () {
     local TEST RESULT MESSAGE RESPONSE RESPONSE_VERBOSE
     TEST="REMOTE SERVER RESPONSE CHECK VIA PROXY"
     INFO="VALIDATING WEBSERVER RESPONSE FOR HOST ${HOST} VIA PROXY"
-    COMMAND="curl -Ss -L --proxy ${PROXY_IP}:${PROXY_PORT} --cacert ${PROXY_CA_CERT} "${URL}" --head"
-    RESPONSE=$(exec ${COMMAND} | awk '$1 ~ /^HTTP\/[1-2]/ {LM=$0} END {if (LM) {split(LM, fields, " "); print fields[2]}}') 
+    COMMAND="curl -Ss -L --proxy ${PROXY_IP}:${PROXY_PORT} --cacert ${PROXY_CA_CERT} ${URL} --head"
     RESPONSE_VERBOSE=$(exec ${COMMAND}) 
+    RESPONSE=$(awk '$1 ~ /^HTTP\/[1-2]/ {LM=$0} END {if (LM) {split(LM, fields, " "); print fields[2]}}' <<< "${RESPONSE_VERBOSE}" ) 
     [[ "$RESPONSE" -ge 200 && "$RESPONSE" -lt 400 ]] && OK_MSG "${RESPONSE_VERBOSE}" || ERR_MSG "${RESPONSE_VERBOSE}"
     XML_OUT "${TEST}" "${INFO}" "${COMMAND}" "${RESULT}" "${MESSAGE}" "${EXIT}"
 }
@@ -151,10 +157,12 @@ MAIN () {
 }
 
 #Loop and listen for user inputs
-while true
-do
-    if read -t 1 INPUT
-    then
-        MAIN ${INPUT}
-    fi
-done
+# while true
+# do
+#     if read -t 1 INPUT
+#     then
+#         MAIN ${INPUT}
+#     fi
+# done
+
+MAIN "${*}"
