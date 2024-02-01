@@ -10,14 +10,34 @@ $(document).ready(function() {
     // When a message is received from the WebSocket
     socket.onmessage = function(event) {
         var response = event.data;
-        console.log(response);
         
-        // Parse response in json
-        var json = JSON.parse(response);
-        console.log(json);
+        // Parse response XML
+        var parser = new DOMParser();
+        var xmlDoc = parser.parseFromString(response, "text/xml");
 
-        // // Append the response to the output with a <br> tag
-        // $('#output').append(response + '<br>');
+        // Get data from XML
+        var test = xmlDoc.getElementsByTagName("TEST")[0].childNodes[0].nodeValue;
+        var msg = xmlDoc.getElementsByTagName("MSG")[0].childNodes[0].nodeValue;
+        var result = xmlDoc.getElementsByTagName("RESULT")[0].childNodes[0].nodeValue;
+
+        // Decode Base64
+        test = atob(test);
+        msg = atob(msg);
+        result = atob(result);
+
+        // Remove trailing new line
+        test = test.replace(/\n$/, '');
+        msg = msg.replace(/\n$/, '');
+        result = result.replace(/\n$/, '');
+        
+        // Convert new line in message to HTML
+        msg = msg.replace(/\n/g, '<br>');
+
+
+        // Log the result with datatype
+        console.log('Test: ' + test + ' - ' + typeof test);
+        console.log('Message: ' + msg + ' - ' + typeof msg);
+        console.log('Result: ' + result + ' - ' + typeof result);
 
         // Create accordion element
         var accordion = document.createElement('div');
@@ -26,11 +46,11 @@ $(document).ready(function() {
 
         var button = document.createElement('button');
         button.className = 'w3-button w3-block w3-left-align';
-        button.innerHTML = json.TEST;
+        button.innerHTML = test;
 
         var panel = document.createElement('div');
         panel.className = 'w3-padding w3-light-grey w3-block w3-left-align';
-        panel.innerHTML = json.MSG;
+        panel.innerHTML = msg;
         panel.style.display = 'none';
         
         button.addEventListener('click', function() {
@@ -44,7 +64,7 @@ $(document).ready(function() {
         accordion.appendChild(panel);
 
         // Set color based on result
-        if (json.RESULT === 'SUCCESS') {
+        if (result == 'SUCCESS') {
             button.className += ' w3-green';
         } else {
             button.className += ' w3-red';
