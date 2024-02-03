@@ -15,27 +15,36 @@ $(document).ready(function() {
         var parser = new DOMParser();
         var xmlDoc = parser.parseFromString(response, "text/xml");
 
+        console.log(xmlDoc);
+
         // Get data from XML
         var test = xmlDoc.getElementsByTagName("TEST")[0].childNodes[0].nodeValue;
+        var info = xmlDoc.getElementsByTagName("INFO")[0].childNodes[0].nodeValue;
+        var cmd = xmlDoc.getElementsByTagName("COMMAND")[0].childNodes[0].nodeValue;
         var msg = xmlDoc.getElementsByTagName("MSG")[0].childNodes[0].nodeValue;
         var result = xmlDoc.getElementsByTagName("RESULT")[0].childNodes[0].nodeValue;
 
         // Decode Base64
         test = atob(test);
+        info = atob(info);
+        cmd = atob(cmd);
         msg = atob(msg);
         result = atob(result);
 
         // Remove trailing new line
         test = test.replace(/\n$/, '');
+        info = info.replace(/\n$/, '');
+        cmd = cmd.replace(/\n$/, '');
         msg = msg.replace(/\n$/, '');
         result = result.replace(/\n$/, '');
         
         // Convert new line in message to HTML
         msg = msg.replace(/\n/g, '<br>');
 
-
         // Log the result with datatype
         console.log('Test: ' + test + ' - ' + typeof test);
+        console.log('Info: ' + info + ' - ' + typeof info);
+        console.log('Command: ' + cmd + ' - ' + typeof cmd);
         console.log('Message: ' + msg + ' - ' + typeof msg);
         console.log('Result: ' + result + ' - ' + typeof result);
 
@@ -50,8 +59,20 @@ $(document).ready(function() {
 
         var panel = document.createElement('div');
         panel.className = 'w3-padding w3-light-grey w3-block w3-left-align';
-        panel.innerHTML = msg;
         panel.style.display = 'none';
+
+        var info_dom = document.createElement('p');
+        info_dom.innerHTML = info;
+        panel.appendChild(info_dom);
+
+        var cmd_dom = document.createElement('code');
+        cmd_dom.className = 'w3-code';
+        cmd_dom.innerHTML = cmd;
+        panel.appendChild(cmd_dom);
+        
+        var msg_dom = document.createElement('p');
+        msg_dom.innerHTML = msg;
+        panel.appendChild(msg_dom);     
         
         button.addEventListener('click', function() {
             if (panel.style.display === 'none') {
