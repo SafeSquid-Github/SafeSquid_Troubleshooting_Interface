@@ -5,7 +5,7 @@ var options = [
     { id: 1, text: 'Record ID', description: 'A unique record identifier, to prevent duplication of records when imported into SQL databases.', selected: true },
     { id: 2, text: 'Client ID', description: 'The internal SafeSquid ID associated with the present/ongoing connection.', selected: true },
     { id: 3, text: 'Request ID', description: 'A unique ID for every request created in the present/ongoing connection to the web-server.', selected: true },
-    { id: 4, text: 'Date Time', description: 'The date and time when the HTTP request was sent. The fields in the date/time field are [DD/MMM/YYYY:hh:mm:ss], where DD is the day of the month, MMM is the month, YYYY is the year, hh is the hour, mm is the minute, ss is the seconds.', selected: true },
+    // { id: 4, text: 'Date Time', description: 'The date and time when the HTTP request was sent. The fields in the date/time field are [DD/MMM/YYYY:hh:mm:ss], where DD is the day of the month, MMM is the month, YYYY is the year, hh is the hour, mm is the minute, ss is the seconds.', selected: true },
     { id: 5, text: 'Elapsed Time', description: 'Length of time in milliseconds that current HTTP request used to complete the transaction.' },
     { id: 6, text: 'Status', description: 'Numeric code indicating the success or failure of the HTTP request. This code is a server response to a browser\'s request.', selected: true },
     { id: 7, text: 'Size', description: 'Numeric field indicating the data transferred in number of bytes as part of the HTTP request, not including the HTTP header.' },
@@ -73,8 +73,9 @@ function setupWebSocket() {
         //     category: data[7].replace(/"/g, '')
         // };
 
+        console.log(data);
         // Add the new row to the table
-        table.row.add(row).draw();
+        table.row.add(data).draw();
 
         // Append the response to the output with a <br> tag
         // $('#logs').append(response + '<br>');
@@ -209,10 +210,14 @@ $(document).ready(function() {
             filters.push(filter);
         });
 
+        var table_cols = selectedOptions.map(function(option) {
+            return { title: option.text};
+        });
+        table_cols.unshift({"title": "Date Time"});
+        console.log(table_cols);
+
         table = $('#log_table').DataTable({
-            columns: selectedOptions.map(function(option) {
-                return { title: option.text};
-            }),
+            columns: table_cols,
             order: [[0, 'desc']]
         });
 
