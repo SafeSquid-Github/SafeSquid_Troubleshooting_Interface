@@ -119,7 +119,7 @@ function makeAwkCommand(columns, filters){
     }).join('&&');
     console.log(filterString);
 
-    var awkString = '-f ' + filterString + ' -c ' + columnString;
+    var awkString = "-f '" + filterString + "' -c '" + columnString +"'";
     console.log(awkString);
 
     return awkString;
