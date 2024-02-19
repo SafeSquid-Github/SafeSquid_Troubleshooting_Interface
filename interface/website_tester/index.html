@@ -7,9 +7,13 @@
 
     <!-- W3 CSS -->
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
-
-    <!-- Add JQuery -->
+    
+    <!-- JQuery -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    
+    <!-- Custom Script and CSS -->
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js"></script>
 </head>
 <body>
     <div class="w3-bar w3-black">
@@ -22,23 +26,34 @@
     <h2 class="w3-center">Website Tester</h2>
     
     <div class="w3-padding-large">
-        <div class="w3-row-padding">
-            <div class="w3-col s2">
+        <div class="w3-row-padding w3-padding-24">
+            <!-- <div class="w3-col s2">
                 <select id="protocol" class="w3-select w3-border w3-center">
                     <option value="http://" selected>http://</option>
                     <option value="https://">https://</option>
                 </select>
+            </div> -->
+            
+            <div class="w3-col s2">
+                <div class="w3-round toggle-container">
+                    <input type="checkbox" id="protocol-toggle" class="toggle-checkbox">
+                    <label for="protocol-toggle" class="toggle-switch">
+                        <span class="toggle-option">http://</span>
+                        <span class="w3-round toggle-glider"></span>
+                        <span class="toggle-option">https://</span>
+                    </label>
+                </div>           
             </div>
-            <div class="w3-col s8">
-                <input type="text" id="website" class="w3-input w3-border" placeholder="Enter a Website (eg: www.google.com)">
+            <div class="w3-col s8" style="display: flex;flex-grow: 1;">
+                <input type="text" id="website" class="w3-input w3-border w3-round" placeholder="Enter a Website (eg: www.google.com)">
+                <button class="clear-button" onclick="document.getElementById('website').value = ''">&#10006;</button>
             </div>
             <div class="w3-col s2">
-                <button id="test_website" class="w3-button w3-black w3-cell-row">Test</button>
+                <button id="test_website" class="w3-button w3-black w3-cell-row w3-round">Test</button>
             </div>
         </div>
 
         <div id="output" class="w3-container">
         </div>
     <div>
-    <script src="script.js"></script>
 </body></html>
